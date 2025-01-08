@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Maker</title>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* General Reset */
+    body, h1, h2, p, input, button {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f4f4f9;
+      height: 100%;
+    }
+
+    /* Header Styling */
+    header {
+      background: linear-gradient(to right, #ff7e5f, #362EFF); /* Gradient background */
+      color: #87FF74;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    /* Website Name Styling */
+    .website-name {
+      font-size: 2.5rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .website-name .logo img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    /* Navigation Button Styling */
+    nav {
+      text-align: center;
+      background-color: #000000;
+    }
+
+    nav button {
+      padding: 10px 7px;
+      margin: 0 5px;
+      font-size: 1rem;
+      background-color: transparent;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    nav button:hover {
+      background-color: #45a049;
+    }
+
+    /* Section Styling */
+    .section {
+      display: none;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .active-section {
+      display: block;
+    }
+
+    /* Footer Styling */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #202320;
+      color: white;
+      text-align: center;
+      padding: 5px;
+    }
+
+    footer .social-icons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    footer .social-icons a {
+      font-size: 1.5rem;
+      text-decoration: none;
+    }
+
+    footer .social-icons a:hover {
+      opacity: 0.7;
+    }
+
+    footer .copyright {
+      margin-top: 5px;
+      font-size: 13px;
+    }
+
+    /* Custom colors for social icons */
+    .fab.fa-facebook {
+      color: #1877F2; /* Facebook Blue */
+    }
+
+    .fab.fa-whatsapp {
+      color: #25D366; /* WhatsApp Green */
+    }
+
+    .fab.fa-youtube {
+      color: #FF0000; /* YouTube Red */
+    }
+
+    .fab.fa-instagram {
+      background: linear-gradient(to right, #F58529, #D7008D, #8A3AB9); /* Instagram Gradient */
+      color: #FF17F0; /* White color for icon */
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    /* Custom asmani color for Twitter */
+    .fab.fa-twitter {
+      color: #1DA1F2; /* Twitter Sky Blue */
+    }
+
+    .earning_list {
+      width: 100%;
+      margin-bottom: 20px;
+      padding: 1px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      background-color: #fff;
+    }
+
+    .earning_list img {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      margin-right: 10px;
+    }
+
+    .earning_list a {
+      text-decoration: none;
+      background-color: #FFA15D;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .earning_list a:hover {
+      background-color: #ff7849;
+    }
+
+/* Modal Styles */
+#photoModal {
+  display: none; /* Hide by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8); /* Dark background overlay */
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+#photoModal img {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: block;
+  margin: auto;
+}
+
+#photoModal button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#photoModal .modal-content {
+  position: relative;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+  </style>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <div class="website-name">
+      <div>Digital</div>
+      <div class="logo">
+        <img src="pic.png" alt="Logo"> <!-- Replace with your logo -->
+      </div>
+      <div>Maker</div>
+    </div>
+  </header>
+
+  <!-- Footer Section -->
+  <footer>
+    <div class="social-icons">
+      <!-- Social Media Icons with Custom Colors -->
+      <a href="https://www.facebook.com/profile.php?id=100088573265004&mibextid=ZbWKwL" target="_blank" class="fab fa-facebook"></a>
+      <a href="https://whatsapp.com/channel/0029Va60tjm1noz3FV8qXO3g" target="_blank" class="fab fa-whatsapp"></a>
+      <a href="mailto:example@email.com" target="_blank" class="fas fa-envelope"></a>
+      <a href="https://twitter.com" target="_blank" class="fab fa-twitter"></a>
+      <a href="https://www.instagram.com" target="_blank" class="fab fa-instagram"></a>
+      <a href="https://youtube.com/@digitalmakervideos?si=hgJo9LO0wBAJCprU" target="_blank" class="fab fa-youtube"></a>
+    </div>
+    <div class="copyright">
+      <i class="fas fa-copyright"></i> 2025 Digital Maker. All rights reserved.
+    </div>
+  </footer>
+
+<!-- Navigation Buttons -->
+<nav>
+  <button onclick="showSection('home')">Home</button>
+  <button onclick="showSection('earning-apps')">Earning Apps</button>
+  <button onclick="showSection('photos')">Photos</button>
+  <button onclick="showSection('about')">About</button>
+</nav>
+
+<!-- Sections -->
+<div id="home" class="section active-section">
+  <h2>Home Section</h2>
+  <p>This is the Home section.</p>
+</div>
+
+<div id="earning-apps" class="section">
+  <!-- App List -->
+  <div class="earning_list">
+    <img src="waki.png" alt="App Icon" style="width: 50px; height: 50px; border-radius: 10px;" />
+    <div style="flex: 1; margin-left: 10px;">
+      <h3 style="margin: 0; font-size: 1.2rem; color: #333;">Waki Star</h3>
+      <p style="margin: 5px 0; font-size: 0.9rem; color: green;">Earn money by using this app.</p>
+    </div>
+    <a href="http://api.muyaparty.com/html/inviteActivity/share.php?shareUid=10163981&code=3JMSA6&lang=en-en&APPNAME=APP&coins=3000&channel=ch_copy_link" target="_blank" style="text-decoration: none; background-color: #FFA15D; color: white; padding: 10px 15px; border-radius: 5px; font-weight: bold; text-align: center;">Download</a>
+  </div>
+</div>
+
+<div id="photos" class="section">
+  <h2>Photos Section</h2>
+  <!-- Upload photo -->
+  <input type="file" id="photoUpload" />
+  <button onclick="uploadPhoto()">Upload Photo</button>
+
+  <!-- Search by Photo ID -->
+  <div style="margin-top: 20px;">
+    <input type="text" id="photoSearch" placeholder="Enter Photo ID" style="padding: 5px; width: 200px;" />
+    <button onclick="searchPhoto()">Search</button>
+  </div>
+<hr >
+
+  <!-- Photo List -->
+  <div id="photoList" style="margin-top: 20px;"></div>
+</div>
+
+<div id="photoModal" onclick="closeModal()">
+  <div class="modal-content">
+    <button onclick="closeModal()">Close</button>
+    <img id="modalImage" src="" alt="Large Photo">
+  </div>
+</div>
+
+<div id="about" class="section">
+  <h2>Digital Maker</h2>
+  <p>Welcome to Digital Maker! Our mission is to provide valuable digital tools, applications, and solutions to help you achieve your goals. Explore our earning apps, photos section, and much more. Your success is our priority!</p><br><hr >
+<p>Any problem contact now 👇</p><hr >
+<center>Facebook <br> <hr > whatsapp <br><hr >instagram <br><hr >Email <br> <hr >YouTube <br><hr >twitter <br><hr >⭐⭐⭐</center>
+</div>
+
+<!-- Modal for viewing the photo in full size -->
+<div id="photoModal">
+  <div style="position: relative; padding: 20px; background-color: white; border-radius: 10px;">
+    <img id="modalImage" src="" alt="Large Photo" onclick="closeModal()" />
+  </div>
+</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
+    import { getDatabase, ref as dbRef, set, push, onValue, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZp9iByRLuYTQEqXPGYWh6qkAeqAHN9wI",
+      authDomain: "recharge-25324.firebaseapp.com",
+      databaseURL: "https://recharge-25324-default-rtdb.firebaseio.com",
+      projectId: "recharge-25324",
+      storageBucket: "recharge-25324.appspot.com",
+      messagingSenderId: "801483653705",
+      appId: "1:801483653705:web:82703d20e585cffb5f3598"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const database = getDatabase(app);
+
+    async function uploadPhoto() {
+      const input = document.getElementById("photoUpload");
+      const file = input.files[0]; // Get the selected file
+
+      if (file) {
+        // Generate a 6-digit random ID
+        const photoID = Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit number
+        const storageRef = ref(storage, `photos/${photoID}_${file.name}`); // Reference to Firebase Storage
+
+        try {
+          const uploadTask = await uploadBytes(storageRef, file); // Upload the file
+          const downloadURL = await getDownloadURL(storageRef); // Get the download URL
+
+          // Save the URL and ID to the database
+          await set(dbRef(database, `photos/${photoID}`), { id: photoID, url: downloadURL });
+
+          displayPhoto(photoID, downloadURL); // Display the uploaded photo
+          input.value = ""; // Reset input field
+        } catch (error) {
+          console.error("Error uploading file: ", error);
+          alert("Failed to upload photo. Please try again.");
+        }
+      } else {
+        alert("Please select a photo to upload.");
+      }
+    }
+
+function displayPhoto(id, url) {
+  const photoList = document.getElementById("photoList");
+
+  // Create the photo container
+  const photoContainer = document.createElement("div");
+  photoContainer.style.display = "flex";
+  photoContainer.style.alignItems = "center";
+  photoContainer.style.marginBottom = "10px";
+
+  // Create the photo element
+  const img = document.createElement("img");
+  img.src = url;
+  img.style.width = "100px";
+  img.style.height = "100px";
+  img.style.objectFit = "cover";
+  img.style.marginRight = "10px";
+  img.style.borderRadius = "10px";
+
+  // Create the ID element
+  const idText = document.createElement("p");
+  idText.textContent = `ID: ${id}`;
+  idText.style.margin = "0";
+  idText.style.fontSize = "0.9rem";
+
+  // Create the View button
+  const viewButton = document.createElement("button");
+  viewButton.textContent = "View";
+  viewButton.style.backgroundColor = "#FFA15D";
+  viewButton.style.color = "white";
+  viewButton.style.padding = "5px 10px";
+  viewButton.style.borderRadius = "5px";
+  viewButton.style.cursor = "pointer";
+  viewButton.onclick = () => openModal(url); // Open the photo in modal when clicked
+
+  // Create the Download button
+  const downloadButton = document.createElement("a");
+  downloadButton.href = url; // Set the download URL
+  downloadButton.download = `photo_${id}.jpg`; // Set the download filename
+  downloadButton.textContent = "Download";
+  downloadButton.style.backgroundColor = "#4CAF50";
+  downloadButton.style.color = "white";
+  downloadButton.style.padding = "5px 10px";
+  downloadButton.style.borderRadius = "5px";
+  downloadButton.style.cursor = "pointer";
+  downloadButton.style.textDecoration = "none";
+  downloadButton.style.marginLeft = "10px"; // Add margin between buttons
+
+  // Append elements to the container
+  photoContainer.appendChild(img);
+  photoContainer.appendChild(idText);
+  photoContainer.appendChild(viewButton);
+  photoContainer.appendChild(downloadButton); // Append the download button
+  photoList.appendChild(photoContainer);
+}
+
+// Ensure these functions are in the global scope
+function openModal(url) {
+  const modal = document.getElementById("photoModal");
+  const modalImage = document.getElementById("modalImage");
+  modal.style.display = "flex"; // Show the modal
+  modalImage.src = url; // Set the image source
+}
+
+function closeModal() {
+  const modal = document.getElementById("photoModal");
+  modal.style.display = "none"; // Hide the modal
+}
+
+// Attach the function explicitly to the window object if needed
+window.openModal = openModal;
+window.closeModal = closeModal;
+
+// If you want clicking on the modal overlay to close the modal as well, you can update the modal div as:
+document.getElementById("photoModal").onclick = function(event) {
+  if (event.target === document.getElementById("photoModal")) {
+    closeModal();
+  }
+};
+
+    // Fetch all photos on page load
+    function loadPhotos() {
+      const photosRef = dbRef(database, 'photos');
+      onValue(photosRef, (snapshot) => {
+        const photoList = document.getElementById("photoList");
+        photoList.innerHTML = ""; // Clear existing photos
+
+        snapshot.forEach((childSnapshot) => {
+          const photoData = childSnapshot.val();
+          if (photoData && photoData.url) {
+            displayPhoto(photoData.id, photoData.url);
+          }
+        });
+      });
+    }
+
+    window.onload = loadPhotos;
+
+    // Expose functions to global scope
+    window.uploadPhoto = uploadPhoto;
+    window.searchPhoto = searchPhoto;
+  </script>
+
+  <script>
+    function showSection(sectionId) {
+const sections = document.querySelectorAll('.section');
+      sections.forEach(section => {
+        section.classList.remove('active-section'); // Hide all sections
+      });
+
+      const activeSection = document.getElementById(sectionId);
+      activeSection.classList.add('active-section'); // Show the selected section
+    }
+
+    // Search Photo Functionality
+    async function searchPhoto() {
+      const photoSearch = document.getElementById("photoSearch").value;
+      if (photoSearch) {
+        try {
+          const photoRef = dbRef(database, `photos/${photoSearch}`);
+          const snapshot = await get(photoRef);
+          if (snapshot.exists()) {
+            const photoData = snapshot.val();
+            displayPhoto(photoData.id, photoData.url); // Display the searched photo
+          } else {
+            alert("No photo found with the provided ID.");
+          }
+        } catch (error) {
+          console.error("Error searching photo: ", error);
+          alert("An error occurred while searching for the photo.");
+        }
+      } else {
+        alert("Please enter a photo ID to search.");
+      }
+    }
+  </script>
+</body>
+</html>

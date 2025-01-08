@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  
+  <!-- Importing Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDeDtxUjGiidseWxY0BS7VFI-UF9FkHDI",
+      authDomain: "livechat-live.firebaseapp.com",
+      databaseURL: "https://livechat-live-default-rtdb.firebaseio.com",
+      projectId: "livechat-live",
+      storageBucket: "livechat-live.firebasestorage.app",
+      messagingSenderId: "800051363353",
+      appId: "1:800051363353:web:d61017528d4fd729de7488"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+
+    // Check user authentication status
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "home.html"; // Redirect to home page if logged in
+      }
+    });
+
+    // Register function
+    async function registerUser(name, email, password) {
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert('Registration successful!');
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    // Login function
+    async function loginUser(email, password) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    // Forgot Password function
+    async function resetPassword(email) {
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert('Password reset email sent!');
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    // Handling form submissions
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      loginUser(email, password);
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      registerUser(name, email, password);
+    });
+
+    document.getElementById('resetPasswordForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const email = document.getElementById('resetEmail').value;
+      resetPassword(email);
+    });
+  </script>
+
+  <style>
+    /* Global styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .container h2 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #333;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .toggle-buttons {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .toggle-buttons button {
+      background-color: transparent;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .toggle-buttons button:hover {
+      color: #0056b3;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 480px) {
+      .container {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Login</h1>
+    <div id="loginSection">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required><br>
+        <input type="password" id="loginPassword" placeholder="Password" required><br>
+        <button type="submit">Login</button>
+      </form>
+      <button id="forgotPasswordButton">Forgot Password?</button>
+      <p class="toggle-buttons">Don't have an account? <button id="showRegisterForm">Register</button></p>
+    </div>
+
+    <div id="registerSection" style="display: none;">
+      <h2>Register</h2>
+      <form id="registerForm">
+        <input type="text" id="registerName" placeholder="Name" required><br>
+        <input type="email" id="registerEmail" placeholder="Email" required><br>
+        <input type="password" id="registerPassword" placeholder="Password" required><br>
+        <button type="submit">Register</button>
+      </form>
+      <p class="toggle-buttons"><button id="showLoginForm">Back to Login</button></p>
+    </div>
+
+    <div id="resetPasswordSection" style="display: none;">
+      <h2>Forgot Password</h2>
+      <form id="resetPasswordForm">
+        <input type="email" id="resetEmail" placeholder="Enter your email" required><br>
+        <button type="submit">Reset Password</button>
+      </form>
+      <p class="toggle-buttons"><button id="showLoginFormFromReset">Back to Login</button></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('forgotPasswordButton').onclick = function() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('resetPasswordSection').style.display = 'block';
+    };
+
+    document.getElementById('showRegisterForm').onclick = function() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('registerSection').style.display = 'block';
+    };
+
+    document.getElementById('showLoginForm').onclick = function() {
+      document.getElementById('registerSection').style.display = 'none';
+      document.getElementById('loginSection').style.display = 'block';
+    };
+
+    document.getElementById('showLoginFormFromReset').onclick = function() {
+      document.getElementById('resetPasswordSection').style.display = 'none';
+      document.getElementById('loginSection').style.display = 'block';
+    };
+  </script>
+</body>
+</html>
