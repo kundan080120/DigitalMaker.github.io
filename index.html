@@ -298,10 +298,10 @@
   </div>
 </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
-    import { getDatabase, ref as dbRef, set, push, onValue, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
+  import { getDatabase, ref as dbRef, set, push, onValue, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCZp9iByRLuYTQEqXPGYWh6qkAeqAHN9wI",
@@ -401,51 +401,81 @@ function displayPhoto(id, url) {
 }
 
 // Ensure these functions are in the global scope
-function openModal(url) {
-  const modal = document.getElementById("photoModal");
-  const modalImage = document.getElementById("modalImage");
-  modal.style.display = "flex"; // Show the modal
-  modalImage.src = url; // Set the image source
-}
-
-function closeModal() {
-  const modal = document.getElementById("photoModal");
-  modal.style.display = "none"; // Hide the modal
-}
-
-// Attach the function explicitly to the window object if needed
-window.openModal = openModal;
-window.closeModal = closeModal;
-
-// If you want clicking on the modal overlay to close the modal as well, you can update the modal div as:
-document.getElementById("photoModal").onclick = function(event) {
-  if (event.target === document.getElementById("photoModal")) {
-    closeModal();
+function searchPhoto() {
+  const searchID = document.getElementById("photoSearch").value.trim();
+  if (!searchID) {
+    alert("Please enter a Photo ID to search.");
+    return;
   }
-};
 
-    // Fetch all photos on page load
-    function loadPhotos() {
+  const photoRef = dbRef(database, `photos/${searchID}`);
+  get(photoRef)
+    .then((snapshot) => {
+      const photoList = document.getElementById("photoList");
+      let foundPhoto = null;
+
+      if (snapshot.exists()) {
+        const photoData = snapshot.val();
+        foundPhoto = { id: photoData.id, url: photoData.url }; // Store the found photo
+      } else {
+        alert("Photo not found!");
+      }
+
+      // Clear the current photo list but keep all photos in the database
+      photoList.innerHTML = ""; 
+
+      // If a photo was found, display it at the top
+      if (foundPhoto) {
+        displayPhoto(foundPhoto.id, foundPhoto.url);
+      }
+
+      // Fetch and display all photos
       const photosRef = dbRef(database, 'photos');
       onValue(photosRef, (snapshot) => {
-        const photoList = document.getElementById("photoList");
-        photoList.innerHTML = ""; // Clear existing photos
-
         snapshot.forEach((childSnapshot) => {
           const photoData = childSnapshot.val();
           if (photoData && photoData.url) {
-            displayPhoto(photoData.id, photoData.url);
+            // Only display photos that are not the one already displayed on top
+            if (!(photoData.id === foundPhoto?.id)) {
+              displayPhoto(photoData.id, photoData.url);
+            }
           }
         });
       });
-    }
 
-    window.onload = loadPhotos;
+      // Reset the input field after searching
+      document.getElementById("photoSearch").value = "";
+    })
+    .catch((error) => {
+      console.error("Error fetching photo: ", error);
+      alert("An error occurred while searching for the photo.");
+      
+      // Reset the input field on error as well
+      document.getElementById("photoSearch").value = "";
+    });
+}
+  // Fetch all photos on page load
+  function loadPhotos() {
+    const photosRef = dbRef(database, 'photos');
+    onValue(photosRef, (snapshot) => {
+      const photoList = document.getElementById("photoList");
+      photoList.innerHTML = ""; // Clear existing photos
 
-    // Expose functions to global scope
-    window.uploadPhoto = uploadPhoto;
-    window.searchPhoto = searchPhoto;
-  </script>
+      snapshot.forEach((childSnapshot) => {
+        const photoData = childSnapshot.val();
+        if (photoData && photoData.url) {
+          displayPhoto(photoData.id, photoData.url);
+        }
+      });
+    });
+  }
+
+  window.onload = loadPhotos;
+
+  // Expose functions to global scope
+  window.uploadPhoto = uploadPhoto;
+  window.searchPhoto = searchPhoto;
+</script>
 
   <script>
     function showSection(sectionId) {
@@ -459,26 +489,55 @@ const sections = document.querySelectorAll('.section');
     }
 
     // Search Photo Functionality
-    async function searchPhoto() {
-      const photoSearch = document.getElementById("photoSearch").value;
-      if (photoSearch) {
-        try {
-          const photoRef = dbRef(database, `photos/${photoSearch}`);
-          const snapshot = await get(photoRef);
-          if (snapshot.exists()) {
-            const photoData = snapshot.val();
-            displayPhoto(photoData.id, photoData.url); // Display the searched photo
-          } else {
-            alert("No photo found with the provided ID.");
-          }
-        } catch (error) {
-          console.error("Error searching photo: ", error);
-          alert("An error occurred while searching for the photo.");
-        }
-      } else {
-        alert("Please enter a photo ID to search.");
-      }
+async function searchPhoto() {
+  const photoSearch = document.getElementById("photoSearch").value.trim();
+  const photoList = document.getElementById("photoList");
+  photoList.innerHTML = ""; // Clear previous results
+
+  if (!photoSearch) {
+    alert("Please enter a photo ID to search.");
+    return;
+  }
+
+  try {
+    console.log(`Searching for photo with ID: ${photoSearch}`); // Debug log
+
+    const databaseRef = ref(database); // Root database reference
+    const snapshot = await get(child(databaseRef, `photos/${photoSearch}`)); // Fetch data
+
+    if (snapshot.exists()) {
+      const photoData = snapshot.val();
+      console.log("Photo found: ", photoData); // Debug log
+
+      displayPhoto(photoData.id, photoData.url); // Call displayPhoto to show the result
+    } else {
+      alert("No photo found with the provided ID.");
     }
+  } catch (error) {
+    console.error("Error searching for photo: ", error.message);
+    alert("An error occurred while searching for the photo.");
+  }
+}
+function openModal(url) {
+  const modal = document.getElementById("photoModal");
+  const modalImage = document.getElementById("modalImage");
+
+  modal.style.display = "flex"; // Show the modal
+  modalImage.src = url; // Set the image source to the URL passed to the function
+}
+
+// Define the closeModal function as well
+function closeModal() {
+  const modal = document.getElementById("photoModal");
+  modal.style.display = "none"; // Hide the modal
+}
+
+// Ensure the functions are exposed globally
+window.openModal = openModal;
+window.closeModal = closeModal;
+
+// Ensure global exposure
+window.searchPhoto = searchPhoto;
   </script>
 </body>
 </html>
