@@ -318,32 +318,46 @@
     const storage = getStorage(app);
     const database = getDatabase(app);
 
-    async function uploadPhoto() {
-      const input = document.getElementById("photoUpload");
-      const file = input.files[0]; // Get the selected file
+async function uploadPhoto() {
+  const input = document.getElementById("photoUpload");
+  const file = input.files[0]; // Get the selected file
 
-      if (file) {
-        // Generate a 6-digit random ID
-        const photoID = Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit number
-        const storageRef = ref(storage, `photos/${photoID}_${file.name}`); // Reference to Firebase Storage
+  if (file) {
+    try {
+      // Get the last photo ID from the database
+      const lastIDSnapshot = await get(dbRef(database, "lastPhotoID"));
+      let lastID = lastIDSnapshot.exists() ? lastIDSnapshot.val() : 0;
 
-        try {
-          const uploadTask = await uploadBytes(storageRef, file); // Upload the file
-          const downloadURL = await getDownloadURL(storageRef); // Get the download URL
+      // Increment the ID for the new photo
+      const newPhotoID = lastID + 1;
 
-          // Save the URL and ID to the database
-          await set(dbRef(database, `photos/${photoID}`), { id: photoID, url: downloadURL });
+      // Reference to Firebase Storage
+      const storageRef = ref(storage, `photos/${newPhotoID}_${file.name}`);
 
-          displayPhoto(photoID, downloadURL); // Display the uploaded photo
-          input.value = ""; // Reset input field
-        } catch (error) {
-          console.error("Error uploading file: ", error);
-          alert("Failed to upload photo. Please try again.");
-        }
-      } else {
-        alert("Please select a photo to upload.");
-      }
+      // Upload the file
+      const uploadTask = await uploadBytes(storageRef, file);
+
+      // Get the download URL
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Save the URL and ID to the database
+      await set(dbRef(database, `photos/${newPhotoID}`), { id: newPhotoID, url: downloadURL });
+
+      // Update the last ID in the database
+      await set(dbRef(database, "lastPhotoID"), newPhotoID);
+
+      // Display the uploaded photo
+      displayPhoto(newPhotoID, downloadURL);
+
+      input.value = ""; // Reset input field
+    } catch (error) {
+      console.error("Error uploading file: ", error);
+      alert("Failed to upload photo. Please try again.");
     }
+  } else {
+    alert("Please select a photo to upload.");
+  }
+}
 
 function displayPhoto(id, url) {
   const photoList = document.getElementById("photoList");
