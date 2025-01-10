@@ -203,13 +203,77 @@
   border-radius: 10px;
   padding: 20px;
 }
-    
-  h3 {
-    font-size: 2em;
-    text-align: center;
-    color: #333;
-  }
-  
+
+/* Fixed Header Styling */
+header {
+  background: linear-gradient(to right, #ff7e5f, #362EFF); /* Gradient background */
+  color: #87FF74;
+  text-align: center;
+  padding: 10px 0;
+  position: fixed; /* Fix header at the top */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* Ensure it's above other content */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: adds shadow under the header */
+}
+
+/* Website Name Styling */
+.website-name {
+  font-size: 2.5rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.website-name .logo img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+/* Navigation Styling */
+nav {
+  position: fixed; /* Fix nav at the top */
+  top: 60px; /* Adjust for header height */
+  width: 100%;
+  text-align: center;
+  background-color: #000000;
+  z-index: 999; /* Below header */
+}
+
+nav button {
+  padding: 10px 7px;
+  margin: 0 5px;
+  font-size: 1rem;
+  background-color: transparent;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+nav button:hover {
+  background-color: #45a049;
+}
+
+/* Adjust content below header */
+body {
+  margin-top: 120px; /* Adjust this value based on header & nav height */
+}
+
+/* Section Styling */
+.section {
+  display: none;
+  padding: 20px;
+  text-align: center;
+}
+
+.active-section {
+  display: block;
+}
 
   </style>
 </head>
@@ -251,8 +315,8 @@
 
 <!-- Sections -->
 <div id="home" class="section active-section">
-  <h2>Home Section</h2>
-<h3>Coming Soon</h3>
+  <h2>Home Page</h2>
+<h4>coming soon</h4>
 </div>
 
 <div id="earning-apps" class="section">
@@ -325,46 +389,32 @@
     const storage = getStorage(app);
     const database = getDatabase(app);
 
-async function uploadPhoto() {
-  const input = document.getElementById("photoUpload");
-  const file = input.files[0]; // Get the selected file
+    async function uploadPhoto() {
+      const input = document.getElementById("photoUpload");
+      const file = input.files[0]; // Get the selected file
 
-  if (file) {
-    try {
-      // Get the last photo ID from the database
-      const lastIDSnapshot = await get(dbRef(database, "lastPhotoID"));
-      let lastID = lastIDSnapshot.exists() ? lastIDSnapshot.val() : 0;
+      if (file) {
+        // Generate a 6-digit random ID
+        const photoID = Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit number
+        const storageRef = ref(storage, `photos/${photoID}_${file.name}`); // Reference to Firebase Storage
 
-      // Increment the ID for the new photo
-      const newPhotoID = lastID + 1;
+        try {
+          const uploadTask = await uploadBytes(storageRef, file); // Upload the file
+          const downloadURL = await getDownloadURL(storageRef); // Get the download URL
 
-      // Reference to Firebase Storage
-      const storageRef = ref(storage, `photos/${newPhotoID}_${file.name}`);
+          // Save the URL and ID to the database
+          await set(dbRef(database, `photos/${photoID}`), { id: photoID, url: downloadURL });
 
-      // Upload the file
-      const uploadTask = await uploadBytes(storageRef, file);
-
-      // Get the download URL
-      const downloadURL = await getDownloadURL(storageRef);
-
-      // Save the URL and ID to the database
-      await set(dbRef(database, `photos/${newPhotoID}`), { id: newPhotoID, url: downloadURL });
-
-      // Update the last ID in the database
-      await set(dbRef(database, "lastPhotoID"), newPhotoID);
-
-      // Display the uploaded photo
-      displayPhoto(newPhotoID, downloadURL);
-
-      input.value = ""; // Reset input field
-    } catch (error) {
-      console.error("Error uploading file: ", error);
-      alert("Failed to upload photo. Please try again.");
+          displayPhoto(photoID, downloadURL); // Display the uploaded photo
+          input.value = ""; // Reset input field
+        } catch (error) {
+          console.error("Error uploading file: ", error);
+          alert("Failed to upload photo. Please try again.");
+        }
+      } else {
+        alert("Please select a photo to upload.");
+      }
     }
-  } else {
-    alert("Please select a photo to upload.");
-  }
-}
 
 function displayPhoto(id, url) {
   const photoList = document.getElementById("photoList");
