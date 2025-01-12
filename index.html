@@ -389,7 +389,7 @@ body {
     const storage = getStorage(app);
     const database = getDatabase(app);
 
-            async function uploadPhoto() {
+async function uploadPhoto() {
   const input = document.getElementById("photoUpload");
   const file = input.files[0];
 
@@ -421,6 +421,7 @@ body {
     alert("Please select a photo to upload.");
   }
 }
+
 
 function displayPhoto(id, url) {
   const photoList = document.getElementById("photoList");
