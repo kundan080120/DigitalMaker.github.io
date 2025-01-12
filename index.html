@@ -389,32 +389,38 @@ body {
     const storage = getStorage(app);
     const database = getDatabase(app);
 
-    async function uploadPhoto() {
-      const input = document.getElementById("photoUpload");
-      const file = input.files[0]; // Get the selected file
+            async function uploadPhoto() {
+  const input = document.getElementById("photoUpload");
+  const file = input.files[0];
 
-      if (file) {
-        // Generate a 6-digit random ID
-        const photoID = Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit number
-        const storageRef = ref(storage, `photos/${photoID}_${file.name}`); // Reference to Firebase Storage
+  if (file) {
+    // Get the last used photo ID
+    const photoCountRef = dbRef(database, 'photoCount');
+    const snapshot = await get(photoCountRef);
+    let photoID = snapshot.exists() ? snapshot.val() + 1 : 1; // Start from 1 if it's the first photo
 
-        try {
-          const uploadTask = await uploadBytes(storageRef, file); // Upload the file
-          const downloadURL = await getDownloadURL(storageRef); // Get the download URL
+    const storageRef = ref(storage, `photos/${photoID}_${file.name}`);
 
-          // Save the URL and ID to the database
-          await set(dbRef(database, `photos/${photoID}`), { id: photoID, url: downloadURL });
+    try {
+      const uploadTask = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
 
-          displayPhoto(photoID, downloadURL); // Display the uploaded photo
-          input.value = ""; // Reset input field
-        } catch (error) {
-          console.error("Error uploading file: ", error);
-          alert("Failed to upload photo. Please try again.");
-        }
-      } else {
-        alert("Please select a photo to upload.");
-      }
+      // Save the URL and ID to the database
+      await set(dbRef(database, `photos/${photoID}`), { id: photoID, url: downloadURL });
+
+      // Update the photoCount in the database
+      await set(photoCountRef, photoID);
+
+      displayPhoto(photoID, downloadURL); // Display the uploaded photo
+      input.value = ""; // Reset input field
+    } catch (error) {
+      console.error("Error uploading file: ", error);
+      alert("Failed to upload photo. Please try again.");
     }
+  } else {
+    alert("Please select a photo to upload.");
+  }
+}
 
 function displayPhoto(id, url) {
   const photoList = document.getElementById("photoList");
