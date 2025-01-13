@@ -275,6 +275,38 @@ body {
   display: block;
 }
 
+
+  #account input {
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  #account button {
+    padding: 4px 4px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  #account button:hover {
+    background-color: #45a049;
+  }
+
+  #account div {
+  }
+
+#uploadButton{
+float: right;
+}
+
+h4{
+margin: 0;
+}
+
   </style>
 </head>
 <body>
@@ -311,7 +343,45 @@ body {
   <button onclick="showSection('earning-apps')">Earning Apps</button>
   <button onclick="showSection('photos')">Photos</button>
   <button onclick="showSection('about')">About</button>
+  <button onclick="showSection('account')">Account</button> <!-- New Button -->
 </nav>
+
+<!-- New Account Section -->
+<div id="account" class="section">
+  <h2>Account</h2>
+
+<div id="userDetails" style="display: none;">
+  <h3>Welcome, <span id="userName"></span>!</h3>
+  <button onclick="logoutUser()">Logout</button>
+</div>
+  
+  <!-- Register Form -->
+<!-- Register Form -->
+<div id="registerForm">
+  <h3>Register</h3>
+  <input type="text" id="registerName" placeholder="Name" required /> <!-- New Field -->
+  <input type="text" id="registerUsername" placeholder="Email" required />
+  <input type="password" id="registerPassword" placeholder="Password" required />
+  <button onclick="registerUser()">Register</button>
+</div>
+  <hr>
+
+  <!-- Login Form -->
+  <div id="loginForm">
+    <h3>Login</h3>
+    <input type="text" id="loginUsername" placeholder="Email" required />
+    <input type="password" id="loginPassword" placeholder="Password" required />
+    <button onclick="loginUser()">Login</button>
+  </div>
+  <hr>
+
+  <!-- Forgot Password -->
+  <div id="forgotPasswordForm">
+    <h3>Forgot Password</h3>
+<input type="email" id="resetEmail" placeholder="Enter your email" />
+<button onclick="resetPassword()">Reset Password</button>
+  </div>
+</div>
 
 <!-- Sections -->
 <div id="home" class="section active-section">
@@ -333,9 +403,10 @@ body {
 
 <div id="photos" class="section">
   <h2>Upload Your Photo</h2>
+<h4>Fist create account</h4>
   <!-- Upload photo -->
   <input type="file" id="photoUpload" />
-  <button onclick="uploadPhoto()">Upload</button>
+<button id="uploadButton" onclick="uploadPhoto()">Upload</button>
 
   <!-- Search by Photo ID -->
   <div style="margin-top: 20px;">
@@ -358,6 +429,7 @@ body {
 <div id="about" class="section">
   <h2>Digital Maker</h2>
   <p>Welcome to Digital Maker! Our mission is to provide valuable digital tools, applications, and solutions to help you achieve your goals. Explore our earning apps, photos section, and much more. Your success is our priority!</p><br><hr >
+
 <p>Any problem contact now 👇</p><hr >
 <center>Facebook <br> <hr > whatsapp <br><hr >instagram <br><hr >Email <br> <hr >YouTube <br><hr >twitter <br><hr >⭐⭐⭐</center>
 </div>
@@ -370,24 +442,28 @@ body {
 </div>
 
 <script type="module">
+  import { deleteObject } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
+  import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
   import { getDatabase, ref as dbRef, set, push, onValue, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCZp9iByRLuYTQEqXPGYWh6qkAeqAHN9wI",
-      authDomain: "recharge-25324.firebaseapp.com",
-      databaseURL: "https://recharge-25324-default-rtdb.firebaseio.com",
-      projectId: "recharge-25324",
-      storageBucket: "recharge-25324.appspot.com",
-      messagingSenderId: "801483653705",
-      appId: "1:801483653705:web:82703d20e585cffb5f3598"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCZp9iByRLuYTQEqXPGYWh6qkAeqAHN9wI",
+    authDomain: "recharge-25324.firebaseapp.com",
+    databaseURL: "https://recharge-25324-default-rtdb.firebaseio.com",
+    projectId: "recharge-25324",
+    storageBucket: "recharge-25324.appspot.com",
+    messagingSenderId: "801483653705",
+    appId: "1:801483653705:web:82703d20e585cffb5f3598"
+  };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
-    const database = getDatabase(app);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app); // Initialize Firebase Authentication
+const storage = getStorage(app);
+const database = getDatabase(app);
 
 async function uploadPhoto() {
   const input = document.getElementById("photoUpload");
@@ -422,89 +498,228 @@ async function uploadPhoto() {
   }
 }
 
+  function displayPhoto(id, url) {
+    const photoList = document.getElementById("photoList");
 
-function displayPhoto(id, url) {
-  const photoList = document.getElementById("photoList");
+    // Create the photo container
+    const photoContainer = document.createElement("div");
+    photoContainer.style.display = "flex";
+    photoContainer.style.alignItems = "center";
+    photoContainer.style.marginBottom = "10px";
 
-  // Create the photo container
-  const photoContainer = document.createElement("div");
-  photoContainer.style.display = "flex";
-  photoContainer.style.alignItems = "center";
-  photoContainer.style.marginBottom = "10px";
+    // Create the photo element
+    const img = document.createElement("img");
+    img.src = url;
+    img.style.width = "100px";
+    img.style.height = "100px";
+    img.style.objectFit = "cover";
+    img.style.marginRight = "10px";
+    img.style.borderRadius = "10px";
 
-  // Create the photo element
-  const img = document.createElement("img");
-  img.src = url;
-  img.style.width = "100px";
-  img.style.height = "100px";
-  img.style.objectFit = "cover";
-  img.style.marginRight = "10px";
-  img.style.borderRadius = "10px";
+    // Create the ID element
+    const idText = document.createElement("p");
+    idText.textContent = `ID: ${id}`;
+    idText.style.margin = "0";
+    idText.style.fontSize = "0.9rem";
 
-  // Create the ID element
-  const idText = document.createElement("p");
-  idText.textContent = `ID: ${id}`;
-  idText.style.margin = "0";
-  idText.style.fontSize = "0.9rem";
+    // Create the View button
+    const viewButton = document.createElement("button");
+    viewButton.textContent = "View";
+    viewButton.style.backgroundColor = "#FFA15D";
+    viewButton.style.color = "white";
+    viewButton.style.padding = "5px 10px";
+    viewButton.style.borderRadius = "5px";
+    viewButton.style.cursor = "pointer";
+    viewButton.onclick = () => openModal(url); // Open the photo in modal when clicked
 
-  // Create the View button
-  const viewButton = document.createElement("button");
-  viewButton.textContent = "View";
-  viewButton.style.backgroundColor = "#FFA15D";
-  viewButton.style.color = "white";
-  viewButton.style.padding = "5px 10px";
-  viewButton.style.borderRadius = "5px";
-  viewButton.style.cursor = "pointer";
-  viewButton.onclick = () => openModal(url); // Open the photo in modal when clicked
+    // Create the Download button
+    const downloadButton = document.createElement("a");
+    downloadButton.href = url; // Set the download URL
+    downloadButton.download = `photo_${id}.jpg`; // Set the download filename
+    downloadButton.textContent = "Download";
+    downloadButton.style.backgroundColor = "#4CAF50";
+    downloadButton.style.color = "white";
+    downloadButton.style.padding = "5px 10px";
+    downloadButton.style.borderRadius = "5px";
+    downloadButton.style.cursor = "pointer";
+    downloadButton.style.textDecoration = "none";
+    downloadButton.style.marginLeft = "10px"; // Add margin between buttons
 
-  // Create the Download button
-  const downloadButton = document.createElement("a");
-  downloadButton.href = url; // Set the download URL
-  downloadButton.download = `photo_${id}.jpg`; // Set the download filename
-  downloadButton.textContent = "Download";
-  downloadButton.style.backgroundColor = "#4CAF50";
-  downloadButton.style.color = "white";
-  downloadButton.style.padding = "5px 10px";
-  downloadButton.style.borderRadius = "5px";
-  downloadButton.style.cursor = "pointer";
-  downloadButton.style.textDecoration = "none";
-  downloadButton.style.marginLeft = "10px"; // Add margin between buttons
-
-  // Append elements to the container
-  photoContainer.appendChild(img);
-  photoContainer.appendChild(idText);
-  photoContainer.appendChild(viewButton);
-  photoContainer.appendChild(downloadButton); // Append the download button
-  photoList.appendChild(photoContainer);
-}
-
-// Ensure these functions are in the global scope
-function searchPhoto() {
-  const searchID = document.getElementById("photoSearch").value.trim();
-  if (!searchID) {
-    alert("Please enter a Photo ID to search.");
-    return;
+    // Append elements to the container
+    photoContainer.appendChild(img);
+    photoContainer.appendChild(idText);
+    photoContainer.appendChild(viewButton);
+    photoContainer.appendChild(downloadButton); // Append the download button
+    photoList.appendChild(photoContainer);
   }
 
-  const photoRef = dbRef(database, `photos/${searchID}`);
-  get(photoRef)
-    .then((snapshot) => {
-      const photoList = document.getElementById("photoList");
-      let foundPhoto = null;
+// Show/Hide Sections
+function toggleForms(showForms) {
+  document.getElementById("registerForm").style.display = showForms ? "block" : "none";
+  document.getElementById("loginForm").style.display = showForms ? "block" : "none";
+  document.getElementById("forgotPasswordForm").style.display = showForms ? "block" : "none";
+  document.getElementById("userDetails").style.display = showForms ? "none" : "block";
+}
+
+// Register User
+async function registerUser() {
+  const name = document.getElementById("registerName").value.trim();
+  const username = document.getElementById("registerUsername").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
+
+  if (name && username && password) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, username, password);
+      const user = userCredential.user;
+
+      // Update the user's display name
+      await updateProfile(user, { displayName: name });
+
+      alert("Registration successful!");
+      console.log("User registered:", user);
+
+      // Show user's name and hide forms
+      document.getElementById("userName").textContent = name;
+      toggleForms(false);
+    } catch (error) {
+      console.error("Error registering user:", error.message);
+      alert("Failed to register. Please try again.");
+    }
+  } else {
+    alert("Please fill in all fields.");
+  }
+}
+
+// Login User
+async function loginUser() {
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  if (username && password) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, username, password);
+      const user = userCredential.user;
+
+      alert("Login successful!");
+      console.log("User logged in:", user);
+
+      // Show user's name and hide forms
+      document.getElementById("userName").textContent = user.displayName || "User";
+      toggleForms(false);
+    } catch (error) {
+      console.error("Error logging in:", error.message);
+      alert("Failed to login. Please try again.");
+    }
+  } else {
+    alert("Please fill in all fields.");
+  }
+}
+
+// Check User Session on Page Load
+function checkUserSession() {
+  auth.onAuthStateChanged((user) => {
+  const uploadButton = document.getElementById("uploadButton");
+    if (user) {
+      // User is logged in
+    uploadButton.style.display = "block";
+      document.getElementById("userName").textContent = user.displayName || "User";
+      toggleForms(false);
+    } else {
+      // No user logged in
+    uploadButton.style.display = "none";
+      toggleForms(true);
+    }
+  });
+}
+
+
+
+// Set session persistence to LOCAL
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Session persistence set to LOCAL.");
+    // Check user session on page load
+    checkUserSession();
+  })
+  .catch((error) => {
+    console.error("Error setting persistence:", error.message);
+  });
+
+// Logout User
+async function logoutUser() {
+  try {
+    await auth.signOut();
+    alert("Logged out successfully!");
+
+    // Show forms and hide user details
+    toggleForms(true);
+  } catch (error) {
+    console.error("Error logging out:", error.message);
+    alert("Failed to logout. Please try again.");
+  }
+}
+
+
+
+// Set session persistence
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Session persistence set to LOCAL.");
+    // Check user session on page load
+    checkUserSession();
+  })
+  .catch((error) => {
+    console.error("Error setting persistence:", error.message);
+  });
+
+// Reset Password
+async function resetPassword() {
+  const email = document.getElementById("resetEmail").value.trim();
+  if (email) {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent!");
+    } catch (error) {
+      console.error("Error resetting password:", error.message);
+      alert("Failed to send reset email. Please try again.");
+    }
+  } else {
+    alert("Please enter your email.");
+  }
+}
+
+  // Search Photo Functionality
+  async function searchPhoto() {
+    const photoSearch = document.getElementById("photoSearch").value.trim();
+    const photoList = document.getElementById("photoList");
+    photoList.innerHTML = ""; // Clear previous results
+
+    if (!photoSearch) {
+      alert("Please enter a photo ID to search.");
+      return;
+    }
+
+    try {
+      console.log(`Searching for photo with ID: ${photoSearch}`); // Debug log
+
+      const databaseRef = dbRef(database); // Root database reference
+      const snapshot = await get(child(databaseRef, `photos/${photoSearch}`)); // Fetch data
 
       if (snapshot.exists()) {
         const photoData = snapshot.val();
-        foundPhoto = { id: photoData.id, url: photoData.url }; // Store the found photo
+        console.log("Photo data:", photoData); // Debug log to check the data
+
+        // Check if the photoData contains the necessary fields
+        if (photoData && photoData.url && photoData.id) {
+          console.log("Photo found: ", photoData); // Debug log
+          displayPhoto(photoData.id, photoData.url); // Display the searched photo first
+        } else {
+          console.error("Photo data is incomplete:", photoData); // Log incomplete data
+          alert("Photo data is incomplete or invalid.");
+        }
       } else {
-        alert("Photo not found!");
-      }
-
-      // Clear the current photo list but keep all photos in the database
-      photoList.innerHTML = ""; 
-
-      // If a photo was found, display it at the top
-      if (foundPhoto) {
-        displayPhoto(foundPhoto.id, foundPhoto.url);
+        console.log("No photo found with the provided ID.");
+        alert("No photo found with the provided ID.");
       }
 
       // Fetch and display all photos
@@ -514,24 +729,31 @@ function searchPhoto() {
           const photoData = childSnapshot.val();
           if (photoData && photoData.url) {
             // Only display photos that are not the one already displayed on top
-            if (!(photoData.id === foundPhoto?.id)) {
+            if (photoData.id !== photoSearch) {
               displayPhoto(photoData.id, photoData.url);
             }
           }
         });
       });
-
-      // Reset the input field after searching
-      document.getElementById("photoSearch").value = "";
-    })
-    .catch((error) => {
-      console.error("Error fetching photo: ", error);
+    } catch (error) {
+      console.error("Error searching for photo: ", error.message);
       alert("An error occurred while searching for the photo.");
-      
-      // Reset the input field on error as well
-      document.getElementById("photoSearch").value = "";
-    });
-}
+    }
+  }
+
+  function openModal(url) {
+    const modal = document.getElementById("photoModal");
+    const modalImage = document.getElementById("modalImage");
+
+    modal.style.display = "flex"; // Show the modal
+    modalImage.src = url; // Set the image source to the URL passed to the function
+  }
+
+  function closeModal() {
+    const modal = document.getElementById("photoModal");
+    modal.style.display = "none"; // Hide the modal
+  }
+
   // Fetch all photos on page load
   function loadPhotos() {
     const photosRef = dbRef(database, 'photos');
@@ -553,69 +775,25 @@ function searchPhoto() {
   // Expose functions to global scope
   window.uploadPhoto = uploadPhoto;
   window.searchPhoto = searchPhoto;
+  window.registerUser = registerUser;
+  window.loginUser = loginUser;
+  window.logoutUser = logoutUser;
+  window.resetPassword = resetPassword;
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+
 </script>
 
-  <script>
-    function showSection(sectionId) {
-const sections = document.querySelectorAll('.section');
-      sections.forEach(section => {
-        section.classList.remove('active-section'); // Hide all sections
-      });
+<script>
+  function showSection(sectionId) {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
+      section.classList.remove('active-section'); // Hide all sections
+    });
 
-      const activeSection = document.getElementById(sectionId);
-      activeSection.classList.add('active-section'); // Show the selected section
-    }
-
-    // Search Photo Functionality
-async function searchPhoto() {
-  const photoSearch = document.getElementById("photoSearch").value.trim();
-  const photoList = document.getElementById("photoList");
-  photoList.innerHTML = ""; // Clear previous results
-
-  if (!photoSearch) {
-    alert("Please enter a photo ID to search.");
-    return;
+    const activeSection = document.getElementById(sectionId);
+    activeSection.classList.add('active-section'); // Show the selected section
   }
-
-  try {
-    console.log(`Searching for photo with ID: ${photoSearch}`); // Debug log
-
-    const databaseRef = ref(database); // Root database reference
-    const snapshot = await get(child(databaseRef, `photos/${photoSearch}`)); // Fetch data
-
-    if (snapshot.exists()) {
-      const photoData = snapshot.val();
-      console.log("Photo found: ", photoData); // Debug log
-
-      displayPhoto(photoData.id, photoData.url); // Call displayPhoto to show the result
-    } else {
-      alert("No photo found with the provided ID.");
-    }
-  } catch (error) {
-    console.error("Error searching for photo: ", error.message);
-    alert("An error occurred while searching for the photo.");
-  }
-}
-function openModal(url) {
-  const modal = document.getElementById("photoModal");
-  const modalImage = document.getElementById("modalImage");
-
-  modal.style.display = "flex"; // Show the modal
-  modalImage.src = url; // Set the image source to the URL passed to the function
-}
-
-// Define the closeModal function as well
-function closeModal() {
-  const modal = document.getElementById("photoModal");
-  modal.style.display = "none"; // Hide the modal
-}
-
-// Ensure the functions are exposed globally
-window.openModal = openModal;
-window.closeModal = closeModal;
-
-// Ensure global exposure
-window.searchPhoto = searchPhoto;
-  </script>
+</script>
 </body>
 </html>
