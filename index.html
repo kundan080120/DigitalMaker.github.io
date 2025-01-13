@@ -468,12 +468,12 @@ const database = getDatabase(app);
 async function uploadPhoto() {
   const input = document.getElementById("photoUpload");
   const file = input.files[0];
+  const currentUser = auth.currentUser?.uid; // Get logged-in user's ID
 
   if (file) {
-    // Get the last used photo ID
     const photoCountRef = dbRef(database, 'photoCount');
     const snapshot = await get(photoCountRef);
-    let photoID = snapshot.exists() ? snapshot.val() + 1 : 1; // Start from 1 if it's the first photo
+    let photoID = snapshot.exists() ? snapshot.val() + 1 : 1;
 
     const storageRef = ref(storage, `photos/${photoID}_${file.name}`);
 
@@ -481,13 +481,15 @@ async function uploadPhoto() {
       const uploadTask = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
-      // Save the URL and ID to the database
-      await set(dbRef(database, `photos/${photoID}`), { id: photoID, url: downloadURL });
+      // Save the URL, ID, and ownerId to the database
+      await set(dbRef(database, `photos/${photoID}`), { 
+        id: photoID, 
+        url: downloadURL, 
+        ownerId: currentUser 
+      });
 
-      // Update the photoCount in the database
-      await set(photoCountRef, photoID);
-
-      displayPhoto(photoID, downloadURL); // Display the uploaded photo
+      await set(photoCountRef, photoID); // Update the photo count
+      displayPhoto(photoID, downloadURL, currentUser); // Display the uploaded photo
       input.value = ""; // Reset input field
     } catch (error) {
       console.error("Error uploading file: ", error);
@@ -498,60 +500,117 @@ async function uploadPhoto() {
   }
 }
 
-  function displayPhoto(id, url) {
-    const photoList = document.getElementById("photoList");
+async function deletePhoto(id, ownerId, url) {
+  const currentUser = auth.currentUser?.uid;
 
-    // Create the photo container
-    const photoContainer = document.createElement("div");
-    photoContainer.style.display = "flex";
-    photoContainer.style.alignItems = "center";
-    photoContainer.style.marginBottom = "10px";
-
-    // Create the photo element
-    const img = document.createElement("img");
-    img.src = url;
-    img.style.width = "100px";
-    img.style.height = "100px";
-    img.style.objectFit = "cover";
-    img.style.marginRight = "10px";
-    img.style.borderRadius = "10px";
-
-    // Create the ID element
-    const idText = document.createElement("p");
-    idText.textContent = `ID: ${id}`;
-    idText.style.margin = "0";
-    idText.style.fontSize = "0.9rem";
-
-    // Create the View button
-    const viewButton = document.createElement("button");
-    viewButton.textContent = "View";
-    viewButton.style.backgroundColor = "#FFA15D";
-    viewButton.style.color = "white";
-    viewButton.style.padding = "5px 10px";
-    viewButton.style.borderRadius = "5px";
-    viewButton.style.cursor = "pointer";
-    viewButton.onclick = () => openModal(url); // Open the photo in modal when clicked
-
-    // Create the Download button
-    const downloadButton = document.createElement("a");
-    downloadButton.href = url; // Set the download URL
-    downloadButton.download = `photo_${id}.jpg`; // Set the download filename
-    downloadButton.textContent = "Download";
-    downloadButton.style.backgroundColor = "#4CAF50";
-    downloadButton.style.color = "white";
-    downloadButton.style.padding = "5px 10px";
-    downloadButton.style.borderRadius = "5px";
-    downloadButton.style.cursor = "pointer";
-    downloadButton.style.textDecoration = "none";
-    downloadButton.style.marginLeft = "10px"; // Add margin between buttons
-
-    // Append elements to the container
-    photoContainer.appendChild(img);
-    photoContainer.appendChild(idText);
-    photoContainer.appendChild(viewButton);
-    photoContainer.appendChild(downloadButton); // Append the download button
-    photoList.appendChild(photoContainer);
+  if (currentUser !== ownerId) {
+    alert("You can only delete your own photos!");
+    return;
   }
+
+  try {
+    // Delete from Storage
+    const storageRef = ref(storage, url);
+    await deleteObject(storageRef);
+
+    // Delete from Database
+    const photoRef = dbRef(database, `photos/${id}`);
+    await set(photoRef, null);
+
+    alert("Photo deleted successfully!");
+    loadPhotos(); // Refresh the photo list
+  } catch (error) {
+    console.error("Error deleting photo: ", error);
+    alert("Failed to delete photo. Please try again.");
+  }
+}
+
+
+
+function displayPhoto(id, url, ownerId) {
+  const photoList = document.getElementById("photoList");
+  const currentUser = auth.currentUser?.uid; // Get logged-in user's ID
+
+  // Photo container
+  const photoContainer = document.createElement("div");
+  photoContainer.style.display = "flex";
+  photoContainer.style.alignItems = "center";
+  photoContainer.style.marginBottom = "15px";
+  photoContainer.style.border = "1px solid #ddd";
+  photoContainer.style.padding = "10px";
+  photoContainer.style.borderRadius = "8px";
+  photoContainer.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+
+  // Photo element
+  const img = document.createElement("img");
+  img.src = url;
+  img.style.width = "100px";
+  img.style.height = "100px";
+  img.style.objectFit = "cover";
+  img.style.marginRight = "px";
+  img.style.borderRadius = "8px";
+
+  // Photo details container
+  const detailsContainer = document.createElement("div");
+  detailsContainer.style.flexGrow = "1";
+
+  const idText = document.createElement("p");
+  idText.textContent = `ID: ${id}`;
+  idText.style.margin = "0";
+  idText.style.fontSize = "0.9rem";
+  idText.style.color = "#555";
+
+  // Button container
+  const buttonContainer = document.createElement("div");
+  buttonContainer.style.display = "flex";
+  buttonContainer.style.gap = "10px";
+
+  // View Button
+  const viewButton = document.createElement("button");
+  viewButton.textContent = "View";
+  viewButton.style.backgroundColor = "#FFA15D";
+  viewButton.style.color = "white";
+  viewButton.style.border = "none";
+  viewButton.style.padding = "5px 10px";
+  viewButton.style.borderRadius = "5px";
+  viewButton.style.cursor = "pointer";
+  viewButton.onclick = () => openModal(url);
+
+  // Download Button
+  const downloadButton = document.createElement("a");
+  downloadButton.href = url;
+  downloadButton.textContent = "Download";
+  downloadButton.style.backgroundColor = "#4CAF50";
+  downloadButton.style.color = "white";
+  downloadButton.style.textDecoration = "none";
+  downloadButton.style.padding = "5px 1px";
+  downloadButton.style.borderRadius = "5px";
+  downloadButton.style.cursor = "pointer";
+  downloadButton.setAttribute("download", `photo_${id}`);
+
+  // Delete Button (Only for the owner)
+  if (currentUser === ownerId) {
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.style.backgroundColor = "#F44336";
+    deleteButton.style.color = "white";
+    deleteButton.style.border = "none";
+    deleteButton.style.padding = "5px 10px";
+    deleteButton.style.borderRadius = "5px";
+    deleteButton.style.cursor = "pointer";
+    deleteButton.onclick = () => deletePhoto(id, ownerId, url); // Delete the photo
+    buttonContainer.appendChild(deleteButton);
+  }
+
+  // Append elements to their respective containers
+  detailsContainer.appendChild(idText);
+  buttonContainer.appendChild(viewButton);
+  buttonContainer.appendChild(downloadButton);
+  photoContainer.appendChild(img);
+  photoContainer.appendChild(detailsContainer);
+  photoContainer.appendChild(buttonContainer);
+  photoList.appendChild(photoContainer);
+}
 
 // Show/Hide Sections
 function toggleForms(showForms) {
@@ -755,20 +814,31 @@ async function resetPassword() {
   }
 
   // Fetch all photos on page load
-  function loadPhotos() {
-    const photosRef = dbRef(database, 'photos');
-    onValue(photosRef, (snapshot) => {
-      const photoList = document.getElementById("photoList");
-      photoList.innerHTML = ""; // Clear existing photos
+async function loadPhotos() {
+  const photoList = document.getElementById("photoList");
+  photoList.innerHTML = ""; // Clear the list before loading photos
 
-      snapshot.forEach((childSnapshot) => {
-        const photoData = childSnapshot.val();
-        if (photoData && photoData.url) {
-          displayPhoto(photoData.id, photoData.url);
-        }
-      });
-    });
+  const currentUser = auth.currentUser?.uid; // Get logged-in user's ID
+  const photosRef = dbRef(database, "photos");
+
+  try {
+    const snapshot = await get(photosRef);
+
+    if (snapshot.exists()) {
+      const photos = snapshot.val();
+
+      for (const id in photos) {
+        const { url, ownerId } = photos[id];
+        displayPhoto(id, url, ownerId);
+      }
+    } else {
+      photoList.innerHTML = "<p>No photos available.</p>";
+    }
+  } catch (error) {
+    console.error("Error loading photos: ", error);
+    alert("Failed to load photos. Please try again.");
   }
+}
 
   window.onload = loadPhotos;
 
